@@ -184,32 +184,41 @@ class MazeSolver {
         );
         const parentMap = new Map();
         const pq = new PriorityQueue((a, b) => a[2] < b[2]);
-
-        distances[this.startPoint[0]][this.startPoint[1]] = 0;
+    
+        distances[this.startPoint[1]][this.startPoint[0]] = 0;
         pq.enqueue([...this.startPoint, 0]);
-
+    
+        console.log('Start point:', this.startPoint);
+        console.log('End point:', this.endPoint);
+    
         while (!pq.isEmpty()) {
             const [x, y, dist] = pq.dequeue();
-
+            
+            console.log(`Exploring: (${x}, ${y}), distance: ${dist}`);
+    
             if (x === this.endPoint[0] && y === this.endPoint[1]) {
+                console.log('Path found!');
                 return this.reconstructPath(parentMap);
             }
-
-            if (dist > distances[x][y]) continue;
-
+    
+            if (dist > distances[y][x]) continue;
+    
             const neighbors = this.getValidNeighbors(x, y);
+            
+            console.log('Neighbors:', neighbors);
             
             for (const [nx, ny] of neighbors) {
                 const newDist = dist + 1;
                 
-                if (newDist < distances[nx][ny]) {
-                    distances[nx][ny] = newDist;
+                if (newDist < distances[ny][nx]) {
+                    distances[ny][nx] = newDist;
                     parentMap.set(`${nx},${ny}`, [x, y]);
                     pq.enqueue([nx, ny, newDist]);
                 }
             }
         }
-
+    
+        console.log('No path found');
         return null;
     }
 
@@ -219,21 +228,29 @@ class MazeSolver {
         );
         const parentMap = new Map();
         const visited = new Set();
-
+    
+        console.log('Start point:', this.startPoint);
+        console.log('End point:', this.endPoint);
+    
         pq.enqueue([...this.startPoint]);
         
         while (!pq.isEmpty()) {
             const [x, y] = pq.dequeue();
-
+    
+            console.log(`Exploring: (${x}, ${y}), Heuristic: ${this.heuristic(x, y)}`);
+    
             if (x === this.endPoint[0] && y === this.endPoint[1]) {
+                console.log('Path found!');
                 return this.reconstructPath(parentMap);
             }
-
+    
             const key = `${x},${y}`;
             if (visited.has(key)) continue;
             visited.add(key);
-
+    
             const neighbors = this.getValidNeighbors(x, y);
+            
+            console.log('Neighbors:', neighbors);
             
             for (const [nx, ny] of neighbors) {
                 const neighborKey = `${nx},${ny}`;
@@ -243,12 +260,100 @@ class MazeSolver {
                 }
             }
         }
-
+    
+        console.log('No path found');
         return null;
     }
 
     greedyBestFirstSearch() {
-        return this.bestFirstSearch();
+        // Validate start and end points
+        if (!this.startPoint || !this.endPoint) {
+            console.error('Start or end point not set');
+            return null;
+        }
+    
+        // Create a priority queue with a custom comparator
+        const pq = new PriorityQueue((a, b) => {
+            const heuristicA = this.heuristic(a[0], a[1]);
+            const heuristicB = this.heuristic(b[0], b[1]);
+            return heuristicA < heuristicB;
+        });
+    
+        // Track visited nodes and parent map for path reconstruction
+        const visited = new Set();
+        const parentMap = new Map();
+    
+        // Start from the initial point
+        pq.enqueue([...this.startPoint]);
+        
+        // Debugging logs
+        console.log('Greedy Best-First Search Started');
+        console.log('Start Point:', this.startPoint);
+        console.log('End Point:', this.endPoint);
+    
+        // Iteration limit to prevent infinite loops
+        const MAX_ITERATIONS = this.mazeSize * this.mazeSize;
+        let iterations = 0;
+    
+        while (!pq.isEmpty() && iterations < MAX_ITERATIONS) {
+            iterations++;
+    
+            // Get the next node with the lowest heuristic value
+            const [x, y] = pq.dequeue();
+    
+            // Debugging
+            console.log(`Exploring: (${x}, ${y}), Heuristic: ${this.heuristic(x, y)}`);
+    
+            // Check if we've reached the goal
+            if (x === this.endPoint[0] && y === this.endPoint[1]) {
+                console.log('Path found!');
+                return this.reconstructPath(parentMap);
+            }
+    
+            // Create a unique key for the current node
+            const key = `${x},${y}`;
+    
+            // Skip if already visited
+            if (visited.has(key)) continue;
+            visited.add(key);
+    
+            // Get valid neighboring nodes
+            const neighbors = this.getValidNeighbors(x, y);
+            
+            // Debugging neighbors
+            console.log('Neighbors:', neighbors);
+    
+            // Explore neighbors
+            for (const [nx, ny] of neighbors) {
+                const neighborKey = `${nx},${ny}`;
+    
+                // Only add unvisited neighbors
+                if (!visited.has(neighborKey)) {
+                    // Add to priority queue
+                    pq.enqueue([nx, ny]);
+                    
+                    // Track parent for path reconstruction
+                    parentMap.set(neighborKey, [x, y]);
+                }
+            }
+        }
+    
+        // Handle no path found scenario
+        if (iterations >= MAX_ITERATIONS) {
+            console.warn('Search exceeded maximum iterations');
+        } else {
+            console.log('No path found');
+        }
+    
+        return null;
+    }
+
+    heuristic(x, y) {
+        // Euclidean distance heuristic (more accurate than Manhattan)
+        return Math.sqrt(
+            Math.pow(x - this.endPoint[0], 2) + 
+            Math.pow(y - this.endPoint[1], 2)
+        );
     }
 
     bidirectionalSearch() {
