@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Maze Pathfinding</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="mazeCanvas" width="500" height="500"></canvas>
+    
+    <select id="complexitySelect">
+        <option value="easy">Easy</option>
+        <option value="medium" selected>Medium</option>
+        <option value="hard">Hard</option>
+    </select>
+    <button id="generateMazeBtn">Generate Maze</button>
+
+    <select id="algorithmSelect">
+        <option value="bfs">Breadth-First Search</option>
+        <option value="dfs">Depth-First Search</option>
+        <option value="dijkstra">Dijkstra's Algorithm</option>
+        <option value="bestFirst">Best-First Search</option>
+        <option value="depthLimited">Depth-Limited Search</option>
+        <option value="bidirectional">Bidirectional Search</option>
+        <option value="greedyBestFirst">Greedy Best-First Search</option>
+    </select>
+    
+    <button id="findPathBtn">Find Path</button>
+
+    <!-- Ensure correct script loading order -->
+    <script src="priorityQueue.js"></script>
+    <script src="mazeGenerator.js"></script>
+    <script src="mazeSolver.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
